@@ -98,24 +98,38 @@ class Core:
             "params": {}
         }
 
-        lower = user_input.lower()
+            lower = user_input.lower()
 
-        # Правила активации модулей (можно расширять)
-        if any(w in lower for w in ["код", "программ", "напиши скрипт", "python", "функци"]):
-            plan["modules_to_call"].append("programming")
-        if any(w in lower for w in ["найди", "поиск", "интернет", "что такое", "как сделать"]):
-            plan["modules_to_call"].append("web_search")
-        if any(w in lower for w in ["текст", "анализ", "стилизуй", "перепиши", "юридический", "рассказ"]):
+        # === Умное планирование модулей ===
+        needs_context = any(w in lower for w in [
+            "лог", "память", "контекст", "что было", "раньше", "история",
+            "файл", "документ", "проанализируй", "найди в"
+        ])
+
+        if needs_context or any(w in lower for w in ["текст", "анализ", "стилизуй", "перепиши"]):
+            plan["modules_to_call"].append("document_analysis")
             plan["modules_to_call"].append("text_work")
-        if any(w in lower for w in ["видео", "ролик", "youtube", "mp4", "извлеки из видео"]):
+
+        if any(w in lower for w in ["код", "программ", "напиши скрипт", "python", "функци", "исправь код"]):
+            plan["modules_to_call"].append("programming")
+            plan["modules_to_call"].append("document_analysis")
+
+        if any(w in lower for w in ["найди", "поиск", "интернет", "что такое", "как сделать", "research"]):
+            plan["modules_to_call"].append("web_search")
+            plan["modules_to_call"].append("document_analysis")
+
+        if any(w in lower for w in ["видео", "ролик", "youtube", "mp4"]):
             plan["modules_to_call"].append("video")
+
         if any(w in lower for w in ["аудио", "голос", "запись", "wav", "mp3"]):
             plan["modules_to_call"].append("audio_voice")
 
-        # Если ничего не определили — используем text_work как fallback
+        # Убираем дубли
+        plan["modules_to_call"] = list(dict.fromkeys(plan["modules_to_call"]))
+
         if not plan["modules_to_call"]:
             plan["modules_to_call"].append("text_work")
-            plan["reason"] = "fallback to text"
+            plan["modules_to_call"].append("document_analysis")
 
         # Можно вызывать минимум 2 модуля одновременно
         plan["params"]["original_input"] = user_input
