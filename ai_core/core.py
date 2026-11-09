@@ -98,7 +98,7 @@ class Core:
             "params": {}
         }
 
-            lower = user_input.lower()
+        lower = user_input.lower()
 
         # === Умное планирование модулей ===
         needs_context = any(w in lower for w in [
